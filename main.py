@@ -17,7 +17,7 @@ def parse_args():
     parser.add_argument('--label_file', '-l', default='Img_label_001.txt',  type=str,
                         help='The text file name used to store image file path and its labels')
     parser.add_argument('--label_sep', '-s', default='\t', type=str,
-                        help='separater in label_file')
+                        help='separator in label_file')
     arg_dict = parser.parse_args()
 
     return arg_dict

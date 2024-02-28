@@ -13,7 +13,7 @@ from synth.logger.synth_logger import logger
 
 
 class Pipeline:
-    blank_compress_patern = re.compile(' +')
+    blank_compress_pattern = re.compile(' +')
 
     def __init__(self, cfg, target_dir, label_file, label_sep='\t', compress_blank=True, display_interval=2000):
         self.font_util = FontUtil(cfg)
@@ -26,7 +26,7 @@ class Pipeline:
         self.label_sep = label_sep
         self.comp_blank = compress_blank
 
-        self.dispaly_interval = display_interval
+        self.display_interval = display_interval
 
     def __del__(self):
         # save label
@@ -62,7 +62,7 @@ class Pipeline:
             return file_name
 
     def compress_blank(self, text):
-        compressed_text = self.blank_compress_patern.sub('', text)
+        compressed_text = self.blank_compress_pattern.sub('', text)
         return compressed_text
 
     def img_save(self, text, f_name, img):
@@ -91,11 +91,7 @@ class Pipeline:
 
                 count += 1
 
-                if count % self.dispaly_interval == 0:
+                if count % self.display_interval == 0:
                     logger.info(f'Num: {count:0>8} image has been generated.')
             except:
                 logger.exception('')
-
-
-
-
