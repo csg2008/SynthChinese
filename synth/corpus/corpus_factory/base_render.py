@@ -81,7 +81,7 @@ class BaseRender(object):
         """
         generator for single corpus_file, yield one word of specified length each time
         """
-        with open(corpus_file_name, mode='r') as f:
+        with open(corpus_file_name, mode='r', encoding='utf-8') as f:
             cache = f.readline().strip()
             while True:
                 if random.random() < self.word_long:

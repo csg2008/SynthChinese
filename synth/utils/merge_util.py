@@ -48,7 +48,7 @@ class MergeUtil(object):
         随机调节背景图片的亮度和对比度
         调节因子为 a*f(x)+b, 其中a:[0.7, 1.4], b:[-50, 50]
         """
-        bg_img = bg_img.astype(np.int)
+        bg_img = bg_img.astype(np.int32)
         a = get_random_value(*self.merge_cfg['alpha'])
         b = get_random_value(*self.merge_cfg['beta'])
         new_bg_img = bg_img * a + b
