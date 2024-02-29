@@ -65,7 +65,7 @@ class Pipeline:
         compressed_text = self.blank_compress_pattern.sub('', text)
         return compressed_text
 
-    def img_save(self, text, f_name, img):
+    def img_save(self, text, f_meta, f_name, img):
         # save img
         cv2.imwrite(os.path.join(self.img_dir, f_name), img)
         # compress blanks in label
@@ -74,7 +74,7 @@ class Pipeline:
         # strip
         text = text.strip()
         # save label
-        label_str = f'{self.img_dir_short}/{f_name}{self.label_sep}{text}\n'
+        label_str = f'{self.img_dir_short}/{f_name}{self.label_sep}{text}{self.label_sep}{f_meta}\n'
         self.label_file.write(label_str)
 
     def __call__(self, corpus_generator, corpus_type='C'):
@@ -86,8 +86,9 @@ class Pipeline:
                 cv_str, cv_img = self.cv_util(font_img)
                 mg_str, mg_img = self.merge_util(cv_img)
 
-                f_name = f'{corpus_type}{count:0>8}_{font_str}_{cv_str}_{mg_str}.jpg'
-                self.img_save(text, f_name, mg_img)
+                f_name = f'{corpus_type}{count:0>8}.jpg'
+                f_meta = f'{font_str}_{cv_str}_{mg_str}'
+                self.img_save(text, f_meta, f_name, mg_img)
 
                 count += 1
 
