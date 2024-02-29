@@ -7,7 +7,7 @@ class TaskRender(BaseRender):
     根据营业执照、车辆合格证、发票、房本识别任务增加任务相关语料
     """
     def __init__(self):
-        self.load('data/corpus/yyzz-hgz-hc.txt')
+        self.load('data/corpus/task.txt')
 
     def load(self, file_path):
         lines = open(file_path, encoding='utf-8').readlines()
