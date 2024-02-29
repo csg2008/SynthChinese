@@ -38,7 +38,7 @@ class SequenceRender(BaseRender):
                     word = pre + cur
                     curLines.append(word)
 
-                    if not word.startswith(' ') and not word.endswith(' '):
+                    if len(word) >= self.length[0] and not word.startswith(' ') and not word.endswith(' '):
                         num += 1
                         okLines.append(word)
 
