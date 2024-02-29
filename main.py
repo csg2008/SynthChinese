@@ -15,7 +15,7 @@ def parse_args():
                         help='config file name')
     parser.add_argument('--target_dir', '-t', default='samples',type=str,
                         help='The directory to store generated images')
-    parser.add_argument('--label_file', '-l', default='label.txt',  type=str,
+    parser.add_argument('--category', '-c', default='train',  type=str,
                         help='The text file name used to store image file path and its labels')
     parser.add_argument('--label_sep', '-s', default='\t', type=str,
                         help='separator in label_file')
@@ -35,7 +35,7 @@ if __name__ == '__main__':
     fname, _ = os.path.splitext(arg_dict.config_file)
     target_path = os.path.join(arg_dict.target_dir, fname + datetime.datetime.now().strftime('_%Y%m%d%H%M%S'))
     # 合成
-    synthPipe = Pipeline(cfg, target_path, arg_dict.label_file, arg_dict.label_sep, display_interval=2000)
+    synthPipe = Pipeline(cfg, target_path, arg_dict.category, arg_dict.label_sep, display_interval=2000)
     for corp in corpus_generators:
         print(f'Start with {corp}')
         synthPipe(corpus_generators[corp], corp[0].upper())

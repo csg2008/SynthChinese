@@ -14,17 +14,18 @@ from synth.logger.synth_logger import logger
 class Pipeline:
     blank_compress_pattern = re.compile(' +')
 
-    def __init__(self, cfg, target_dir, label_file, label_sep='\t', compress_blank=True, display_interval=2000):
+    def __init__(self, cfg, target_dir, category, label_sep='\t', compress_blank=True, display_interval=2000):
         os.makedirs(target_dir, exist_ok=True)
 
         self.font_util = FontUtil(cfg)
         self.cv_util = cvUtil(cfg)
         self.merge_util = MergeUtil(cfg)
 
+        self.category = category
         self.target_dir = target_dir
         self.img_dir_short = 'img'
         self.img_dir = os.path.join(target_dir, self.img_dir_short)
-        self.label_file = open(self.check_filename(os.path.join(target_dir, label_file)), 'w')
+        self.label_file = open(self.check_filename(os.path.join(target_dir, category + '.txt')), 'w')
         self.label_sep = label_sep
         self.comp_blank = compress_blank
 
@@ -75,7 +76,7 @@ class Pipeline:
                 cv_str, cv_img = self.cv_util(font_img)
                 mg_str, mg_img = self.merge_util(cv_img)
 
-                f_name = f'{corpus_type}{count:0>8}.jpg'
+                f_name = f'{self.category}-{corpus_type}{count:0>8}.jpg'
                 f_meta = f'{font_str}_{cv_str}_{mg_str}'
                 self.img_save(text, f_meta, f_name, mg_img)
 
