@@ -16,5 +16,5 @@ args = {'when': 'D',
         'level': Logger.INFO,  # 日志level
         }
 
-os.makedirs(log_path)
+os.makedirs(log_path, exist_ok=True)
 logger = Logger('synth', log_path, 'synth_chinese.log', **args)

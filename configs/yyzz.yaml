@@ -1,6 +1,6 @@
 TEXT:
     SAMPLE:
-        SAMPLE_SIZE: {'corpus': 200,'date': 10,'number': 10,'sub_address': 10,'id': 10,'eng_char': 10, 'task':10}  # 数量（万）
+        SAMPLE_SIZE: {'corpus': 2000000,'date': 100000,'number': 100000,'sub_address': 100000,'id': 100000,'eng_char': 100000, 'task': 100000}  # 各种类型样本数量
         WORD_LENGTH: [2, 12]   # 字符长度
         WORD_LONG: 0.85  # 一定的概率字符长度不随机而取WORD_LENGTH中的最大长度
         INSERT_BLANK_PROB: 0.8    # 当字符长度少于最大长度时用空格补全为最大长度（空格只出现在两字中间）

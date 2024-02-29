@@ -33,9 +33,9 @@ def get_corpus(cfg):
 
     all_generators = OrderedDict()
     for render_name in all_renders:
-        amount = sample_size[render_name] * 10000
+        amount = sample_size[render_name]
 
-        if amount > 0:
+        if amount != 0:
             all_generators[render_name] = all_renders[render_name].generate(amount)
 
     return all_generators
