@@ -1,4 +1,5 @@
 import copy
+import random
 from synth.corpus.corpus_factory.base_render import BaseRender
 
 
@@ -14,24 +15,47 @@ class SequenceRender(BaseRender):
 
     def generate(self, size):
         num = 0
+        charCnt = {}
         okLines = []
         curLines = []
-        preLines = copy.deepcopy(self.chars)
+        chars = list(self.chars)
+        charsLen = len(self.chars)
+        reGenLen = charsLen * 3
+        preLines = copy.deepcopy(chars)
+        preLineMax = max(int(len(chars) * 1.8), 10000)
 
         for _ in range(self.length[1]):
             for pre in preLines:
-                for cur in self.chars:
+                for cur in chars:
+                    if self.char_max_amount > 0:
+                        if cur not in charCnt:
+                            charCnt[cur] = 0
+                        charCnt[cur] += 1
+
+                        if charCnt[cur] > self.char_max_amount:
+                            continue
+
                     word = pre + cur
                     curLines.append(word)
 
-                    if len(word) >= self.length[0] and not word.startswith(' ') and not word.endswith(' '):
+                    if not word.startswith(' ') and not word.endswith(' '):
                         num += 1
                         okLines.append(word)
 
                     if size > 0 and num >= size:
                         return okLines
 
-            preLines = copy.deepcopy(curLines)
+            curLineLen = len(curLines)
+            if charsLen >= 16 and curLineLen > preLineMax:
+                random.shuffle(curLines)
+                preLines = copy.deepcopy(curLines[:preLineMax])
+            elif charsLen >= 16 and curLineLen > reGenLen:
+                random.shuffle(curLines)
+                preLineIdx = int(curLineLen * 0.25)
+                preLines = copy.deepcopy(curLines[preLineIdx:])
+            else:
+                preLines = copy.deepcopy(curLines)
+
             curLines = []
 
         return okLines
