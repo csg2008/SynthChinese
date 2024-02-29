@@ -5,7 +5,6 @@
 import os
 import re
 import cv2
-import datetime
 from synth.utils.font_util import FontUtil
 from synth.utils.cv_util import cvUtil
 from synth.utils.merge_util import MergeUtil
@@ -16,36 +15,26 @@ class Pipeline:
     blank_compress_pattern = re.compile(' +')
 
     def __init__(self, cfg, target_dir, label_file, label_sep='\t', compress_blank=True, display_interval=2000):
+        os.makedirs(target_dir, exist_ok=True)
+
         self.font_util = FontUtil(cfg)
         self.cv_util = cvUtil(cfg)
         self.merge_util = MergeUtil(cfg)
 
         self.target_dir = target_dir
-        self.img_dir = self._init_img_dir()
+        self.img_dir_short = 'img'
+        self.img_dir = os.path.join(target_dir, self.img_dir_short)
         self.label_file = open(self.check_filename(os.path.join(target_dir, label_file)), 'w')
         self.label_sep = label_sep
         self.comp_blank = compress_blank
 
         self.display_interval = display_interval
 
+        os.makedirs(self.img_dir, exist_ok=True)
+
     def __del__(self):
         # save label
         self.label_file.close()
-
-    def _init_img_dir(self):
-        times = 1
-        datestr = datetime.datetime.now().strftime('%Y_%m_%d')
-        while True:
-            test_num_str = '{:0>3}'.format(times)
-            tmp_dirname = datestr + '_' + test_num_str
-            if os.path.exists(os.path.join(self.target_dir, tmp_dirname)):
-                times += 1
-            else:
-                img_dir = os.path.join(self.target_dir, tmp_dirname)
-                os.makedirs(img_dir)
-                logger.info('A new train images directory has been generated: {}'.format(self.target_dir + '/' + tmp_dirname))
-                self.img_dir_short = tmp_dirname
-                return img_dir
 
     def check_filename(self, file_name):
         if os.path.exists(file_name):
