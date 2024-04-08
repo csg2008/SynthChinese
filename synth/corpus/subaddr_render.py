@@ -1,5 +1,5 @@
 import random
-from synth.corpus.corpus_factory.base_render import BaseRender
+from .base_render import BaseRender
 
 
 class SubAddrRender(BaseRender):
@@ -8,6 +8,9 @@ class SubAddrRender(BaseRender):
         - **号院**号楼*单元
         - **区**弄**室
     """
+
+    def __init__(self, logger, cfg=None):
+        pass
 
     def get_sample(self):
         num_words = u'0123456789'

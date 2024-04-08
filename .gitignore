@@ -93,5 +93,5 @@ ENV/
 # IDEs
 .vs/
 .idea/
-log/
+output/
 samples/

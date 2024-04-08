@@ -4,39 +4,214 @@
 """
 
 import argparse
+import os
+import html
 import datetime
-from synth.corpus.base_corpus_factory import get_corpus
+import traceback
+import yaml
+import cv2
+
+from synth.utils.logger import Logger
+from synth.utils.font_util import FontUtil
+from synth.libs.fonts_factory import FontsFactory
+from synth.libs.misc import read_charset, generateImagePreviews
 from synth.synth_pipeline import Pipeline
 
+APP_PATH = os.path.dirname(os.path.abspath(__file__))
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Generate training data for OCR')
-    parser.add_argument('--config_file', '-f', default='base.yaml', type=str,
-                        help='config file name')
-    parser.add_argument('--target_dir', '-t', default='samples',type=str,
-                        help='The directory to store generated images')
-    parser.add_argument('--category', '-c', default='train',  type=str,
-                        help='The text file name used to store image file path and its labels')
-    parser.add_argument('--label_sep', '-s', default='\t', type=str,
-                        help='separator in label_file')
-    arg_dict = parser.parse_args()
+    """解析命令行参数选项"""
 
-    return arg_dict
+    parser = argparse.ArgumentParser(description='OCR 训练数据生成器')
+    parser.add_argument('--entry', '-e', type=str, required=True,
+                        help="""命令入口, 如:
+                        rec 生成文本识别数据集
+                        preview 生成字体预览图
+                        check 检查字体是否包含 vocab 文件中的字符""")
+    parser.add_argument('--config_file', '-c', type=str,
+                        help='配置文件路径')
+    parser.add_argument('--output', '-o',type=str,
+                        help='数据输出文件夹')
+    parser.add_argument('--font_dir', '-f', type=str,
+                        help='字体文件夹路径')
+    parser.add_argument('--font_size', default=38, type=int,
+                        help='预览字体大小')
+    parser.add_argument('--category', default='train',  type=str,
+                        help='生成的训练数据类别')
+    parser.add_argument('--label_sep', default='\t', type=str,
+                        help='数据标签分隔符')
+    parser.add_argument('--label-index', default=False, type=bool,
+                        help='是否以字符索引作为标签')
+    parser.add_argument('--index-start', default=1, type=int,
+                        help='图片文件名序号起始值')
+    parser.add_argument('--show-support', default=False, type=bool,
+                        help='显示支持的字体列表，默认显示不支持的列表')
+    parser.add_argument('--clean', default=False, type=bool,
+                        help='是否清理不支持的字体文件')
+    return parser.parse_args()
 
+def check(logger: Logger, config: str, font_dir: str, show_support: bool, clean: str):
+    """
+    检查字体是否包含 vocab 文件中的字符
+
+    args:
+        logger: 日志
+        config: 生成配置文件名
+        font_dir: 字体文件夹路径
+        show_support: 显示支持的字体列表，默认显示不支持的列表
+        clean: 是否清理不支持的字体文件
+    """
+
+    cfg = yaml.load(open(config, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
+    chars = read_charset(cfg['TEXT']['SAMPLE']['CHAR_SET'])[0]
+    whiteList = [os.path.basename(font_dir)] if os.path.isfile(font_dir) else None
+
+    if whiteList is None:
+        ff = FontsFactory(logger, font_dir, True, whiteList = whiteList)
+        allFonts = ff.get_all_fonts(font_dir)
+        supportFonts = ff.get_supported_fonts(chars)
+        numSupport, numAll = len(supportFonts), len(allFonts)
+        if numSupport == numAll:
+            logger.info('all fonts check done, pass!')
+        else:
+            support = []
+            notSupport = []
+            for fn in allFonts:
+                if fn in supportFonts:
+                    support.append(fn)
+                else:
+                    notSupport.append(fn)
+                    if clean:
+                        os.remove(os.path.join(font_dir, fn))
+
+        if show_support:
+            logger.info(f'all support fonts: {support}')
+        else:
+            logger.info(f'check done {numSupport}/{numAll}, not support fonts: {notSupport}')
+    else:
+        support = []
+        notSupport = []
+        ff = FontsFactory(logger, os.path.dirname(font_dir), True, whiteList = whiteList)
+        font_charsets = ff.get_font_charset(font_dir)
+
+        for char in chars:
+            if char in font_charsets:
+                support.append(char)
+            else:
+                notSupport.append(char)
+
+        if show_support:
+            font_str = '\n'.join(support)
+        else:
+            font_str = '\n'.join(notSupport)
+
+        with open('font.txt', 'w', encoding='utf-8') as f:
+            f.write(font_str)
+
+def preview(logger: Logger, config: str, output: str, font_dir: str, font_size: int):
+    """
+    生成字体预览图
+
+    args:
+        logger: 日志
+        config: 生成配置文件名
+        output: 生成的训练数据输出文件夹
+        font_dir: 字体文件夹路径
+        font_size: 预览字体大小
+    """
+
+    cfg = yaml.load(open(config, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
+    text = cfg['TEXT']['SAMPLE']['PREVIEW']
+
+    print('prepare load font file')
+
+    os.makedirs(output, exist_ok=True)
+
+    tags = []
+    ff = FontsFactory(logger, font_dir)
+    fontUtil = FontUtil(cfg, logger)
+    allFonts = ff.get_all_fonts(font_dir)
+
+    idx = 0
+    tags.append(f'<h3>Preview font size {font_size}</h3>')
+
+    for fn in allFonts:
+        try:
+            idx += 1
+            imgFn = f'{idx}.jpg'
+            imgText = text + ' ' + fn
+            font_file = os.path.join(font_dir, fn)
+            saveFile = os.path.join(output, imgFn)
+            _, img = fontUtil.renderText(imgText, fn, font_file, font_size, True)
+            cv2.imwrite(saveFile, img)
+
+            tags.append(f'<img src="{imgFn}" alt="{html.escape(fn)}" title="{html.escape(fn)}" />')
+        except Exception as e:
+            logger.info(e)
+            traceback.print_exc()
+
+    generateImagePreviews(os.path.join(output, 'preview.html'), tags, '<br />')
+
+    print('create font preview done!')
+
+
+def rec(logger: Logger, config: str, output: str, font_dir: str, category: str, label_index: bool, index_start: int):
+    """
+    生成 OCR 识别模型数据
+
+    args:
+        config: 生成配置文件名
+        output: 生成的训练数据输出文件夹
+        font_dir: 字体文件夹路径
+        category: 生成的训练数据类别
+        label_index: 是否以字符索引作为标签
+        index_start: 图片文件名序号起始值
+    """
+
+    cfg = yaml.load(open(config, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
+
+    # 生成目录
+    fname, _ = os.path.splitext(os.path.basename(config))
+    target_path = os.path.join(output, fname + datetime.datetime.now().strftime('_%Y%m%d%H%M%S'))
+
+    if font_dir is not None:
+        cfg['EFFECT']['FONTS']['fonts_dir'] = font_dir
+
+    # 合成
+    pipeline = Pipeline(cfg, logger, target_path, category, label_index, seq = index_start, display_interval=2000)
+    pipeline.run()
+
+
+def get_logger(log_save_path):
+    """初始化日志"""
+
+    kwargs = {'when': 'D',
+            'interval': 1,
+            'backupCount': 10,
+            'console': True,  # 是否输出到屏幕
+            'level': Logger.INFO,  # 日志level
+            }
+
+    return Logger('synth', log_save_path, **kwargs)
 
 if __name__ == '__main__':
-    import os
-    import yaml
-    arg_dict = parse_args()
-    cfg = yaml.load(open('configs/' + arg_dict.config_file, encoding='utf-8'), Loader=yaml.FullLoader)
-    # 获取语料
-    corpus_generators = get_corpus(cfg)
-    # 生成目录
-    fname, _ = os.path.splitext(arg_dict.config_file)
-    target_path = os.path.join(arg_dict.target_dir, fname + datetime.datetime.now().strftime('_%Y%m%d%H%M%S'))
-    # 合成
-    synthPipe = Pipeline(cfg, target_path, arg_dict.category, arg_dict.label_sep, display_interval=2000)
-    for corp in corpus_generators:
-        print(f'Start with {corp}')
-        synthPipe(corpus_generators[corp], corp[0].upper())
+    args = parse_args()
+    cfg_file = os.path.join(APP_PATH, 'configs/' + args.config_file)
 
+    if not os.path.exists(cfg_file):
+        print('config file not found: %s', cfg_file)
+        os._exit(1)
+    if args.output is None or '' == args.output:
+        args.output = os.path.join(APP_PATH, 'output')
+
+    log_path = os.path.join(args.output, 'log')
+    obj_logger = get_logger(log_path)
+
+    if 'rec' == args.entry:
+        rec(obj_logger, cfg_file, args.output, args.font_dir, args.category, args.label_index, args.index_start)
+    elif 'preview' == args.entry:
+        preview(obj_logger, cfg_file, args.output, args.font_dir, args.font_size)
+    elif 'check' == args.entry:
+        check(obj_logger, cfg_file, args.font_dir, args.show_support, args.clean)
+    else:
+        obj_logger.error('unknown entry: %s', args.entry)

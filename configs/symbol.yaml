@@ -1,14 +1,14 @@
 TEXT:
     SAMPLE:
-        SAMPLE_SIZE: {'sequence': 10}  # 各种类型样本数量
+        SAMPLE_SIZE: {'sequence': 100}  # 各种类型样本数量
         WORD_LENGTH: [3, 10]   # 字符长度
         WORD_LONG: 0.85  # 一定的概率字符长度不随机而取WORD_LENGTH中的最大长度
         INSERT_BLANK_PROB: 0.8    # 当字符长度少于最大长度时用空格补全为最大长度（空格只出现在两字中间）
-        CHAR_SET: 'data/chars/eng.txt'        # 字符集文件
+        CHAR_SET: 'data/chars/symbol.txt'        # 字符集文件
         CHAR_MAX_AMOUNT: 500000   #  中文单字符最大使用次数，达到后停用。只对article类型生效
         CHAR_MAX_SUBSTR: ' '    # 字符停用后的替换字符
         CHAR_MIN_AMOUNT: 1000    # 字符最小使用次数，不足时补充
-        PREVIEW: '0123456789-abcdefg+ABCDEFG={}!@#$%'    # 预览文本
+        PREVIEW: '0123456789-abcdefg+ABCDEFG=⑰⑱⑲⑳㉑㉒㉓㉔㉕'    # 预览文本
         SEPARATOR: "\t"          # 标签文件中的分隔符
         COMPRESS_BLANK: true     # 压缩标签空格
 
@@ -38,7 +38,7 @@ EFFECT:
             rotation: [0.1, [-5, 5,'u']]  # 旋转
             strong: 0.05  # 加粗
             wide: 0.01  # 加宽
-            vertical: [0.3, 5]  # 垂直
+            vertical: [0.5, 5]  # 垂直
             strength: [0, 0.1, 'u']  # 加粗/加宽的幅度
             underline: [0.01, [0, 2, 'u']]  # 下划线
 

@@ -5,14 +5,17 @@
 
 import os
 import random
-import traceback
 from copy import deepcopy
+from PIL import ImageFont
+from typing import List, Set
 from fontTools.ttLib import TTCollection, TTFont
-from synth.logger.synth_logger import logger
 
 
 class FontsFactory:
-    def __init__(self, font_dir, fonts_prob=False):
+    def __init__(self, logger, font_dir, charset_check: bool = True, fonts_prob=None, whiteList: List[str] = None):
+        self.logger = logger
+        self.whiteList = whiteList
+        self.charset_check = charset_check
         self.fonts_dict = self.get_all_fonts(font_dir)
         self._init_fonts_prob(fonts_prob)
 
@@ -25,6 +28,18 @@ class FontsFactory:
             for font in self.fonts_dict:
                 self.font_prob[font] = 1
 
+        # drop unsupported fonts
+        stripKeys = set()
+        for font in self.font_prob.keys():
+            if font not in self.fonts_dict:
+                stripKeys.add(font)
+        if self.whiteList is not None:
+            for font in self.font_prob.keys():
+                if font not in self.whiteList:
+                    stripKeys.add(font)
+            for font in stripKeys:
+                del self.font_prob[font]
+
     def get_all_fonts(self, resource_path):
         """
         traversal the resource dir, find all font files
@@ -35,9 +50,18 @@ class FontsFactory:
         # get file end with '.ttf'
         ttf_files = list(filter(lambda x: os.path.splitext(x)[1] in ['.ttf', '.otf', '.TTF', '.ttc'], all_files))
         for ttf in ttf_files:
+            if self.whiteList and ttf not in self.whiteList:
+                continue
+
             charset = self.get_font_charset(os.path.join(resource_path, ttf))
             font_dict[ttf] = (os.path.join(resource_path, ttf), charset)
         return font_dict
+
+    def get_font(self, font_path: str, font_size: int) -> ImageFont.FreeTypeFont:
+        """Get a FreeType font object"""
+
+        font = ImageFont.truetype(font_path, font_size)
+        return font
 
     def _load_font(self, font_path):
         """
@@ -57,7 +81,7 @@ class FontsFactory:
 
             return ttf
 
-    def get_font_charset(self, font_path):
+    def get_font_charset(self, font_path: str) -> Set[str]:
         try:
             ttf = self._load_font(font_path)
             chars_set = set()
@@ -65,27 +89,51 @@ class FontsFactory:
                 for k, v in table.cmap.items():
                     char = chr(k)
                     chars_set.add(char)
-        except:
+        except Exception as e:
             chars_set = {}
-            logger.exception('')
+            self.logger.exception(f'get_font_charset error: {e}, font path: {font_path}')
 
         return chars_set
 
-    def get_supported_fonts(self, text):
-        # drop unsupported charsets
-        supported_fonts = deepcopy(self.font_prob)
-        for char in text:
-            for font_name in list(supported_fonts.keys()):
-                if font_name in self.fonts_dict:
-                    if char not in self.fonts_dict[font_name][1]:
-                        supported_fonts.pop(font_name)
-                else:
-                    logger.error('No such font in target dir: {}'.format(font_name))
+    def get_supported_fonts(self, text: str, once: bool = False) -> dict:
+        if self.charset_check:
+            # drop unsupported charsets
+
+            if once:
+                fonts = list(self.font_prob.keys())
+
+                random.shuffle(fonts)
+                for font_name in fonts:
+                    if font_name in self.fonts_dict:
+                        num_hit = 0
+                        for char in text:
+                            if char in self.fonts_dict[font_name][1]:
+                                num_hit += 1
+                            else:
+                                break
+
+                        if num_hit == len(text):
+                            return {font_name: self.font_prob[font_name]}
+                    else:
+                        self.logger.error(f'No such font in target dir: {font_name}')
+            else:
+                supported_fonts = deepcopy(self.font_prob)
+
+                for char in text:
+                    for font_name in list(supported_fonts.keys()):
+                        if font_name in self.fonts_dict:
+                            if char not in self.fonts_dict[font_name][1]:
+                                supported_fonts.pop(font_name)
+                        else:
+                            self.logger.error(f'No such font in target dir: {font_name}')
+        else:
+            supported_fonts = self.font_prob
+
         return supported_fonts
 
     def generate_font(self, text):
         # get supported fonts
-        supported_fonts = self.get_supported_fonts(text)
+        supported_fonts = self.get_supported_fonts(text, True)
 
         # randomly choose one
         if supported_fonts:

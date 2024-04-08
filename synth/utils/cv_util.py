@@ -7,7 +7,7 @@ import os
 import math
 import random
 import numpy as np
-from synth.libs.math_util import PerspectiveTransform, get_random_value
+from ..libs.math_util import PerspectiveTransform, get_random_value
 
 
 class cvUtil(object):
@@ -22,13 +22,13 @@ class cvUtil(object):
 
         """
         self.open_cv_conf = cfg['EFFECT']['OPENCV']
-        self.create_kernals()
+        self.create_kernels()
 
     def warpPerspectiveTransform(self, img, x, y, z):
         """
         执行透视变换，并裁取变换后的文字区域
         """
-        raw_h, raw_w = img.shape
+        raw_h, raw_w = img.shape[:2]
         transformer = PerspectiveTransform(x, y, z, scale=1.0, fovy=50)
         dst_img, M33, dst_img_pnts = transformer.transform_image(img)
 
@@ -42,7 +42,7 @@ class cvUtil(object):
         new_img = dst_img[min_y:max_y, min_x:max_x]
 
         # 尺寸还原，保持长宽比缩放，两边都不超过原尺寸
-        new_h, new_w = new_img.shape
+        new_h, new_w = new_img.shape[:2]
         w1, h1 = int(new_w * raw_h / new_h), raw_h
         w2, h2 = raw_w, int(new_h * raw_w / new_w)
         if w1 <= raw_w and h1 <= raw_h:
@@ -56,7 +56,7 @@ class cvUtil(object):
         先将图片pad为原尺寸的4/3，画框，再resize回原尺寸
         """
         assert alpha >= 1
-        h, w = img.shape
+        h, w = img.shape[:2]
         dst_h, dst_w = int(h * alpha), int(w * alpha)
         top = random.randint(1, dst_h - h)
         bottom = dst_h - h - top
@@ -86,8 +86,8 @@ class cvUtil(object):
         out = cv2.resize(img, (int(width / scale), int(height / scale)), interpolation=cv2.INTER_AREA)
         return cv2.resize(out, (width, height), interpolation=cv2.INTER_AREA)
 
-    def create_kernals(self):
-        self.emboss_kernal = np.array([
+    def create_kernels(self):
+        self.emboss_kernel = np.array([
             [-2, -1, 0],
             [-1, 1, 1],
             [0, 1, 2]
@@ -100,7 +100,7 @@ class cvUtil(object):
         ])
 
     def apply_emboss(self, word_img):
-        return cv2.filter2D(word_img, -1, self.emboss_kernal)
+        return cv2.filter2D(word_img, -1, self.emboss_kernel)
 
     def apply_sharp(self, word_img):
         return cv2.filter2D(word_img, -1, self.sharp_kernel)

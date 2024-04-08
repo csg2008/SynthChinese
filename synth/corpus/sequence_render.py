@@ -1,14 +1,13 @@
-import copy
 import random
-from synth.corpus.corpus_factory.base_render import BaseRender
+from .base_render import BaseRender
 
 
 class SequenceRender(BaseRender):
     """
     基于字符列表的排列组合生成器
     """
-    def __init__(self, chars_file, cfg=None):
-        super(SequenceRender, self).__init__(chars_file, cfg)
+    def __init__(self, logger, cfg=None):
+        super(SequenceRender, self).__init__(logger, cfg)
 
         self.last = 0
         self.charsList = list(self.chars)
@@ -38,7 +37,7 @@ class SequenceRender(BaseRender):
         while True:
             yield self.get_sample()
             num += 1
-            if num > size:
+            if num >= size:
                 return
 
 

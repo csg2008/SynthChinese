@@ -1,6 +1,6 @@
 import random
 import time
-from synth.corpus.corpus_factory.base_render import BaseRender
+from .base_render import BaseRender
 
 
 class DateRender(BaseRender):
@@ -12,8 +12,7 @@ class DateRender(BaseRender):
 
     """
 
-    def __init__(self, *args, **kwargs):
-        super(DateRender, self).__init__(*args, **kwargs)
+    def __init__(self, logger, cfg=None):
         self._init_date()
 
     def _init_date(self):

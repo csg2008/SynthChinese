@@ -7,20 +7,16 @@ some functions refers to: https://github.com/Sanster/text_renderer
 import cv2
 import random
 import numpy as np
-from copy import deepcopy
-from synth.libs.bg_factory import bgFactory
-from synth.libs.poisson_reconstruct import blit_images
-from synth.libs.math_util import get_random_value
-from synth.logger.synth_logger import logger
+from ..libs.poisson_reconstruct import blit_images
+from ..libs.math_util import get_random_value
 
 
 class MergeUtil(object):
-    def __init__(self, cfg):
+    def __init__(self, cfg, logger):
         """
         """
+        self.logger = logger
         self.merge_cfg = cfg['EFFECT']['MERGE']
-        self.bg_factory = bgFactory(cfg['BACKGROUND']['DIR'], *cfg['BACKGROUND']['SIZE'])
-
         self.rgb = self.merge_cfg['RGB']
 
     def random_pad(self, font_img, bg_shape):
@@ -30,14 +26,13 @@ class MergeUtil(object):
         # resize
         h, w = font_img.shape[:2]
         resize_h = bg_shape[0] - int(random.uniform(2, self.merge_cfg['max_height_diff']))  # 比背景少2到n个像素
-        resize_w = np.clip(int(w * resize_h / float(h)), 1, bg_shape[1])  # 按比例缩放，最大不能超过bg_w
+        resize_w = np.clip(int(w * resize_h / float(h)), 1, bg_shape[1])                    # 按比例缩放，最大不能超过bg_w
         font_img = cv2.resize(font_img, (resize_w, resize_h), interpolation=cv2.INTER_CUBIC)
-        if font_img.ndim < 3:
-            font_img = np.expand_dims(font_img, 2)
+
         # random pad
         h, w = font_img.shape[:2]
-        top_padding = int(random.uniform(1, bg_shape[0] - h))
-        left_padding = int(random.uniform(1, bg_shape[1] - w))
+        top_padding = int((bg_shape[0] - h)/2)
+        left_padding = int(random.uniform(0, bg_shape[1] - w))
         text_arr = np.zeros(bg_shape)
         text_arr[top_padding:h+top_padding, left_padding:w+left_padding, :] = font_img
         # text_arr = np.pad(font_img, ((top_padding, down_padding), (left_padding, right_padding)), 'constant')
@@ -69,9 +64,8 @@ class MergeUtil(object):
         # 将文字图反转（pygame_util产生的是反的, 文字是255）
         reversed_font_img = 255 - padded_font_img
         # 随机调整文字图对比度(a*X+b, 泊松编辑后文字的显著程度只与a有关，故无须关注b)
-        alpha = get_random_value(*self.merge_cfg['font_alpha'])
-        adj_font_img = reversed_font_img * alpha
-        adj_font_img = adj_font_img.astype(np.uint8)
+        alpha = get_random_value(*self.merge_cfg['font_alpha'][1:]) if random.random() < self.merge_cfg['font_alpha'][0] else 1
+        adj_font_img = (reversed_font_img * alpha).astype(np.uint8)
         # 随机颜色翻转
         if random.random() < self.merge_cfg['reverse']:
             adj_font_img = padded_font_img * alpha
@@ -137,16 +131,14 @@ class MergeUtil(object):
         noisy = np.random.poisson(img * vals) / float(vals)
         return noisy
 
-    def __call__(self, font_img):
+    def __call__(self, bg_name, bg_img, font_img):
         """
         """
         # process
-        if self.rgb:
-            font_img = cv2.cvtColor(font_img, cv2.COLOR_GRAY2BGR)
-        else:
-            font_img = np.expand_dims(font_img, 2)
-        # generate bg
-        bg_name, bg_img =self.bg_factory.getnerate_bg(rgb=self.rgb)
+        # if self.rgb:
+        #     font_img = cv2.cvtColor(font_img, cv2.COLOR_GRAY2BGR)
+        # else:
+        #     font_img = np.expand_dims(font_img, 2)
         # merge font_img and bg_img
         merge_str, merged_img = self.poisson_edit(font_img, bg_img)
         bg_name += f'_{merge_str}'
@@ -163,7 +155,7 @@ class MergeUtil(object):
             elif noise_type == 'poisson':
                 final_img = self.apply_poisson_noise(merged_img)
             else:
-                logger.error(f'NOISE TYPE ERROR:{noise_type}')
+                self.logger.error(f'NOISE TYPE ERROR:{noise_type}')
                 final_img = merged_img
             bg_name += f'_{noise_type}'
 
@@ -184,7 +176,6 @@ class MergeUtil(object):
             if key == ord('q'):
                 break
 
-            # cv2.imwrite('/Users/Desperado/Desktop/工作文件夹/gitcode/SynthChinese/samples/'+final_str+'.jpg', final_img)
         cv2.destroyAllWindows()
 
     def test_font_bg_color(self, bg_color, dark_ratio):

@@ -9,9 +9,9 @@ import numpy as np
 from typing import Tuple, Union
 from PIL import ImageDraw, Image
 
-from ..libs.font_text import FontText, FontColor
-from ..libs.math_util import get_random_value
-from ..libs.fonts_factory import FontsFactory
+from .font_text import FontText, FontColor
+from .math_util import get_random_value
+from .fonts_factory import FontsFactory
 
 def transparent_img(size: Tuple[int, int]) -> Image.Image:
     """

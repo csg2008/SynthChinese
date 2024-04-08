@@ -1,12 +1,12 @@
-import random
-from synth.corpus.corpus_factory.base_render import BaseRender
+from .base_render import BaseRender
 
 
 class TaskRender(BaseRender):
     """
     根据营业执照、车辆合格证、发票、房本识别任务增加任务相关语料
     """
-    def __init__(self):
+
+    def __init__(self, logger, cfg=None):
         self.load('data/corpus/task.txt')
 
     def load(self, file_path):
@@ -27,5 +27,5 @@ class TaskRender(BaseRender):
 
 
 if __name__ == '__main__':
-    r = TaskRender()
+    r = TaskRender(None)
     words = r.generate(100)

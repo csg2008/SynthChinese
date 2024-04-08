@@ -3,7 +3,6 @@ import random
 import glob
 import os
 from abc import abstractmethod
-from synth.logger.synth_logger import logger
 
 
 class BaseRender(object):
@@ -15,23 +14,29 @@ class BaseRender(object):
         -生成完毕后，可根据词频补充不常出现的字符
 
     """
-    STOP_PATERN = re.compile('[\u4e00-\u9fa5]')  # 只对中文字符设置停用
+    STOP_PATTERN = re.compile('[\u4e00-\u9fa5]')  # 只对中文字符设置停用
 
-    def __init__(self, chars_file, cfg=None):
+    def __init__(self, logger, cfg=None):
         """
         :param chars: List of charset
         :param corpus_dir: Path of corpus
-        :param corpus_type_dict: {corpus_short_name1: corpus_type...}, copus type "article"、"list"
-        :param corpus_weight_dict: Weight of corpus {corpus_short_name1: weith1, ...}
+        :param corpus_type_dict: {corpus_short_name1: corpus_type...}, coups type "article"、"list"
+        :param corpus_weight_dict: Weight of corpus {corpus_short_name1: weigh1, ...}
         :param char_max_amount: Max amount of single char
-        :param length: [min_length, max_length], lenght range of word length
+        :param length: [min_length, max_length], length range of word length
         :param mode: if "infinite" reload corpus when all corpus are end, else raise error
         """
-        self.chars = self.load_chars(chars_file)
-        self.stastics = dict()
+        self.logger = logger
+        self.chars = self.load_chars(cfg['SAMPLE']['CHAR_SET'])
+
+        self.charMap = dict()
+        for (i, c) in enumerate(list(self.chars)):
+            self.charMap[c] = i
+
+        self.spastics = dict()
         for c in self.chars:
-            if self.STOP_PATERN.match(c):
-                self.stastics[c] = 0
+            if self.STOP_PATTERN.match(c):
+                self.spastics[c] = 0
 
         if cfg:
             self.char_max_amount = cfg['SAMPLE']['CHAR_MAX_AMOUNT']
@@ -45,8 +50,6 @@ class BaseRender(object):
             self.corpus_type = cfg['CORPUS']['CORPUS_TYPE']
             self.corpus_weight = cfg['CORPUS']['CORPUS_WEIGHT']
             self.infinite = cfg['CORPUS']['INFINITE']
-
-            self.load()
         else:
             self.length = [1, 12]
 
@@ -55,7 +58,7 @@ class BaseRender(object):
         Load charset file
         """
         if not os.path.exists(filepath):
-            logger.error(f"Chars file {filepath} not exists.")
+            self.logger.error(f"Chars file {filepath} not exists.")
             exit(1)
 
         ret = ' '
@@ -71,10 +74,10 @@ class BaseRender(object):
         """
         load paths of corpus
         """
-        logger.info(f"Loading corpus from: {self.corpus_dir}")
+        self.logger.info(f"Loading corpus from: {self.corpus_dir}")
         self.corpus_path = glob.glob(self.corpus_dir + '/**/*.txt', recursive=True)
         if len(self.corpus_path) == 0:
-            logger.error("Corpus not found.")
+            self.logger.error("Corpus not found.")
             exit(-1)
 
     def gen_words_from_corpus(self, corpus_file_name, corpus_type):
@@ -94,12 +97,12 @@ class BaseRender(object):
                         char = cache[0]
                         cache = cache[1:]
                         if char in self.chars:
-                            if char in self.stastics:
+                            if char in self.spastics:
                                 if corpus_type == 'article':
-                                    if self.stastics[char] > self.char_max_amount:
+                                    if self.spastics[char] > self.char_max_amount:
                                         words += self.char_max_sub_str
                                     else:
-                                        self.stastics[char] += 1
+                                        self.spastics[char] += 1
                                         words += char
                                 else:
                                     words += char
@@ -113,7 +116,7 @@ class BaseRender(object):
                                 if random.random() < self.insert_blank:
                                     words = self.randomly_insert_blank(words)
                             yield words
-                            break  # genrate next word
+                            break  # generate next word
 
                     else:
                         line = f.readline()
@@ -126,7 +129,7 @@ class BaseRender(object):
 
     def load(self):
         """
-        load all corpus as a generator dict, use default weigth if it's not specified
+        load all corpus as a generator dict, use default weight if it's not specified
         """
         if self.corpus_dir:
             self.load_corpus_path()
@@ -150,13 +153,13 @@ class BaseRender(object):
                         generator = self.gen_words_from_corpus(corpus_file_name, corpus_type)
                         self.corpus[corpus_short_name] = {'corpus': generator,
                                                           'weight': weight}
-                        logger.info(f'Weight of corpus:{corpus_short_name}: {weight}')
+                        self.logger.info(f'Weight of corpus:{corpus_short_name}: {weight}')
                     else:
-                        logger.info(f'Weight of corpus:{corpus_short_name}, not setted! use 0')
+                        self.logger.info(f'Weight of corpus:{corpus_short_name}, not setted! use 0')
 
                 else:
                     weight = 0.01
-                    logger.info(f'Weight of corpus:{corpus_short_name}, not setted! use 0.01')
+                    self.logger.info(f'Weight of corpus:{corpus_short_name}, not setted! use 0.01')
                     self.corpus[corpus_short_name] = {'corpus': self.gen_words_from_corpus(corpus_file_name, corpus_type),
                                                       'weight': weight}
         else:
@@ -183,12 +186,14 @@ class BaseRender(object):
             word = next(self.corpus[corpus_short_name]['corpus'])
         except StopIteration:
             self.corpus.pop(corpus_short_name)
-            logger.info(f'{corpus_short_name}: is exhausted！')
+            self.logger.info(f'{corpus_short_name}: is exhausted！')
             return self.get_sample()
         return word
 
     @abstractmethod
     def generate(self, size):
+        self.load()
+
         for _ in range(size):
             yield self.get_sample()
         for text in self.supply_uncommon():
@@ -210,13 +215,13 @@ class BaseRender(object):
         words = []
         parag = []
         for c in self.chars:
-            if self.STOP_PATERN.match(c):
-                c_amount = self.stastics[c]
+            if self.STOP_PATTERN.match(c):
+                c_amount = self.spastics[c]
                 if c_amount < self.char_min_amount:
                     added_amount = self.char_min_amount - c_amount
                     tmp_list = [c]
                     parag.extend(tmp_list * added_amount)
-                    self.stastics[c] = self.char_min_amount
+                    self.spastics[c] = self.char_min_amount
 
         random.shuffle(parag)
         parag = ''.join(parag)
@@ -257,6 +262,13 @@ class BaseRender(object):
                 words = random.choices(line.strip(), k=self.length[1])
                 ds_words.append(''.join(words))
         return ds_words
+
+    def transfer_label_to_index(self, label):
+        idx = []
+        for c in label:
+            idx.append(str(self.charMap[c]))
+
+        return ' '.join(idx)
 
 
 if __name__ == '__main__':

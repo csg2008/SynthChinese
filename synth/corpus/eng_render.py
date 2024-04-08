@@ -1,5 +1,5 @@
 import random
-from synth.corpus.corpus_factory.base_render import BaseRender
+from .base_render import BaseRender
 
 
 class EngRender(BaseRender):
@@ -7,6 +7,9 @@ class EngRender(BaseRender):
     生成英文字母串：
         - 12位英文字母
     """
+
+    def __init__(self, logger, cfg=None):
+        pass
 
     def get_sample(self):
         en_words = u'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'

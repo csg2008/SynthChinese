@@ -1,5 +1,5 @@
 import random
-from synth.corpus.corpus_factory.base_render import BaseRender
+from .base_render import BaseRender
 
 
 class NumberRender(BaseRender):
@@ -8,7 +8,7 @@ class NumberRender(BaseRender):
         - (0, 1000)均匀分布, 50%随机带 kg/mm/㎡ 符号
         - 均值0，标准差1000,保留0、1、2、3、4位小数
     """
-    def load(self):
+    def __init__(self, logger, cfg=None):
         pass
 
     def get_sample(self):
