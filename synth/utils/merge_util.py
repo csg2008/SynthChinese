@@ -44,8 +44,8 @@ class MergeUtil(object):
         调节因子为 a*f(x)+b, 其中a:[0.7, 1.4], b:[-50, 50]
         """
         bg_img = bg_img.astype(np.int32)
-        a = get_random_value(*self.merge_cfg['alpha'])
-        b = get_random_value(*self.merge_cfg['beta'])
+        a = get_random_value(*self.merge_cfg['alpha'][1:]) if random.random() < self.merge_cfg['alpha'][0] else 1
+        b = get_random_value(*self.merge_cfg['beta'][1:]) if random.random() < self.merge_cfg['beta'][0] else 0
         new_bg_img = bg_img * a + b
         new_bg_img = np.clip(new_bg_img, 50, 255)
         return new_bg_img.astype(np.uint8)
