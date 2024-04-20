@@ -40,21 +40,31 @@ class FontsFactory:
             for font in stripKeys:
                 del self.font_prob[font]
 
-    def get_all_fonts(self, resource_path):
+    def get_all_fonts(self, resource_path: str):
         """
         traversal the resource dir, find all font files
         """
 
         font_dict = {}
-        all_files = os.listdir(resource_path)
-        # get file end with '.ttf'
-        ttf_files = list(filter(lambda x: os.path.splitext(x)[1] in ['.ttf', '.otf', '.TTF', '.ttc'], all_files))
-        for ttf in ttf_files:
-            if self.whiteList and ttf not in self.whiteList:
-                continue
+        all_entries = os.listdir(resource_path)
+        allow_exts = ['.ttf', '.otf', '.TTF', '.ttc']
 
-            charset = self.get_font_charset(os.path.join(resource_path, ttf))
-            font_dict[ttf] = (os.path.join(resource_path, ttf), charset)
+        for entry in all_entries:
+            entry_path = os.path.join(resource_path, entry)
+
+            if not entry.startswith('.') and os.path.isdir(entry_path):
+                sub_fonts = self.get_all_fonts(entry_path)
+                if sub_fonts and len(sub_fonts) > 0:
+                    font_dict.update(sub_fonts)
+            else:
+                entry_ext = os.path.splitext(entry)[1]
+                if entry_ext not in allow_exts:
+                    continue
+                if self.whiteList and entry not in self.whiteList:
+                    continue
+
+                charset = self.get_font_charset(entry_path)
+                font_dict[entry] = (entry_path, charset)
         return font_dict
 
     def get_font(self, font_path: str, font_size: int) -> ImageFont.FreeTypeFont:
