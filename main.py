@@ -204,8 +204,7 @@ if __name__ == '__main__':
     if args.output is None or '' == args.output:
         args.output = os.path.join(APP_PATH, 'output', args.entry)
 
-    log_path = os.path.join(args.output, 'log')
-    obj_logger = get_logger(log_path)
+    obj_logger = get_logger(args.output)
 
     if 'rec' == args.entry:
         rec(obj_logger, cfg_file, args.output, args.font_dir, args.category, args.label_index, args.index_start)
