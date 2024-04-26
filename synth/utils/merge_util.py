@@ -134,11 +134,6 @@ class MergeUtil(object):
     def __call__(self, bg_name, bg_img, font_img):
         """
         """
-        # process
-        # if self.rgb:
-        #     font_img = cv2.cvtColor(font_img, cv2.COLOR_GRAY2BGR)
-        # else:
-        #     font_img = np.expand_dims(font_img, 2)
         # merge font_img and bg_img
         merge_str, merged_img = self.poisson_edit(font_img, bg_img)
         bg_name += f'_{merge_str}'
@@ -161,6 +156,10 @@ class MergeUtil(object):
 
         else:
             final_img = merged_img
+
+        # process
+        if not self.rgb:
+            final_img = cv2.cvtColor(final_img, cv2.COLOR_BGR2GRAY)
 
         return bg_name, final_img
 
