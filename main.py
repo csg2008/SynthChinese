@@ -27,6 +27,7 @@ def parse_args():
                         help="""命令入口, 如:
                         rec 生成文本识别数据集
                         preview 生成字体预览图
+                        stat 统计 vocab 字库中的字符在字体文件中的次数
                         check 检查字体是否包含 vocab 文件中的字符""")
     parser.add_argument('--config_file', '-c', type=str,
                         help='配置文件路径')
@@ -49,6 +50,46 @@ def parse_args():
     parser.add_argument('--clean', default=False, type=bool,
                         help='是否清理不支持的字体文件')
     return parser.parse_args()
+
+def stat_vocab(logger: Logger, config: str, font_dir: str):
+    """
+    统计 vocab 字库中的字符在字体中出现的次数
+
+    args:
+        logger: 日志
+        config: 生成配置文件名
+        font_dir: 字体文件夹路径
+    """
+
+    stat = {}
+    cfg = yaml.load(open(config, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
+    chars = read_charset(cfg['TEXT']['SAMPLE']['CHAR_SET'])[0]
+    whiteList = cfg['EFFECT']['FONTS']['white_list'] if 'white_list' in cfg['EFFECT']['FONTS'] else None
+    ff = FontsFactory(logger, font_dir, charset_check = True, whiteList = whiteList)
+    allFonts = ff.get_load_fonts()
+
+    for char in chars:
+        for font in allFonts.items():
+            if char in font[1][1]:
+                if char in stat:
+                    stat[char] += 1
+                else:
+                    stat[char] = 1
+            else:
+                if char not in stat:
+                    stat[char] = 0
+
+    msg = []
+    stat_list = []
+    for k, v in stat.items():
+        stat_list.append((k, v))
+    stat_list.sort(key=lambda x: x[1])
+
+    msg.append(f'vocab 字库中的字符在字体中出现的次数, 按出现次数排序(共 {len(allFonts)} 个字体):')
+    for char, count in stat_list:
+        msg.append(f'{char}: {count}')
+
+    open('stat.txt', 'w+', encoding='utf-8').write('\n'.join(msg))
 
 def check(logger: Logger, config: str, font_dir: str, show_support: bool, clean: str):
     """
@@ -215,5 +256,7 @@ if __name__ == '__main__':
         preview(obj_logger, cfg_file, args.output, args.font_dir, args.font_size)
     elif 'check' == args.entry:
         check(obj_logger, cfg_file, args.font_dir, args.show_support, args.clean)
+    elif 'stat' == args.entry:
+        stat_vocab(obj_logger, cfg_file, args.font_dir)
     else:
         obj_logger.error('unknown entry: %s', args.entry)

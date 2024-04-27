@@ -42,6 +42,11 @@ class FontsFactory:
             for font in stripKeys:
                 del self.font_prob[font]
 
+    def get_load_fonts(self) -> dict[str, tuple[str, object]]:
+        '''Returns all fonts loaded'''
+
+        return self.fonts_dict
+
     def get_all_fonts(self, resource_path: str):
         """
         traversal the resource dir, find all font files
@@ -49,8 +54,8 @@ class FontsFactory:
 
         font_dict = {}
         all_entries = os.listdir(resource_path)
-        allow_exts = ['.ttf', '.otf', '.TTF', '.ttc']
-
+        allow_exts = ['.ttf', '.otf', '.ttc']
+        #print('font:', all_entries)
         for entry in all_entries:
             entry_path = os.path.join(resource_path, entry)
 
@@ -59,15 +64,14 @@ class FontsFactory:
                 if sub_fonts and len(sub_fonts) > 0:
                     font_dict.update(sub_fonts)
             else:
-                entry_ext = os.path.splitext(entry)[1]
+                entry_ext = os.path.splitext(entry)[1].lower()
                 if entry_ext not in allow_exts:
                     continue
                 if self.whiteList and entry not in self.whiteList:
                     continue
 
                 charset = self.get_font_charset(entry_path)
-
-                if len(charset) >0:
+                if len(charset) > 0:
                     font_dict[entry] = (entry_path, charset)
 
         return font_dict
