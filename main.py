@@ -196,11 +196,15 @@ def get_logger(log_save_path):
 
 if __name__ == '__main__':
     args = parse_args()
-    cfg_file = os.path.join(APP_PATH, 'configs/' + args.config_file)
 
+    if os.path.isabs(args.config_file):
+        cfg_file = args.config_file
+    else:
+        cfg_file = os.path.join(APP_PATH, 'configs/' + args.config_file)
     if not os.path.exists(cfg_file):
         print('config file not found: %s', cfg_file)
         os._exit(1)
+
     if args.output is None or '' == args.output:
         args.output = os.path.join(APP_PATH, 'output', args.entry)
 
