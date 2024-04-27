@@ -12,8 +12,10 @@ from fontTools.ttLib import TTCollection, TTFont
 
 
 class FontsFactory:
-    def __init__(self, logger, font_dir, charset_check: bool = True, fonts_prob=None, whiteList: List[str] = None):
+    def __init__(self, logger, font_dir, cache: bool = False, charset_check: bool = True, fonts_prob=None, whiteList: List[str] = None):
+        self.useCache = cache
         self.logger = logger
+        self.fontCache = {}
         self.whiteList = whiteList
         self.charset_check = charset_check
         self.fonts_dict = self.get_all_fonts(font_dir)
@@ -73,7 +75,16 @@ class FontsFactory:
     def get_font(self, font_path: str, font_size: int) -> ImageFont.FreeTypeFont:
         """Get a FreeType font object"""
 
-        font = ImageFont.truetype(font_path, font_size)
+        if self.useCache:
+            cacheKey = f'{font_path}:{font_size}'
+            if cacheKey in self.fontCache:
+                font = self.fontCache[cacheKey]
+            else:
+                font = ImageFont.truetype(font_path, font_size)
+                self.fontCache[cacheKey] = font
+        else:
+            font = ImageFont.truetype(font_path, font_size)
+
         return font
 
     def _load_font(self, font_path):

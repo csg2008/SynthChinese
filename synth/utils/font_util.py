@@ -167,10 +167,11 @@ class FontUtil(object):
         self.font_style_cfg = self.font_cfg['STYLE']
 
         # init font factory
+        fontCache = self.font_cfg['cache'] if 'cache' in self.font_cfg else False
         fontsProb = self.font_cfg['fonts_prob'] if 'fonts_prob' in self.font_cfg else None
         fontWhiteList = self.font_cfg['white_list'] if 'white_list' in self.font_cfg else None
         charsetCheck = self.font_cfg['charset_check'] if 'charset_check' in self.font_cfg else True
-        self.fontFac = FontsFactory(logger, self.font_cfg['fonts_dir'], charsetCheck, fontsProb, fontWhiteList)
+        self.fontFac = FontsFactory(logger, self.font_cfg['fonts_dir'], fontCache, charsetCheck, fontsProb, fontWhiteList)
 
     def __call__(self, text, bg_img):
         font_name, font_file = self.fontFac.generate_font(text)

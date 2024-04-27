@@ -67,7 +67,7 @@ def check(logger: Logger, config: str, font_dir: str, show_support: bool, clean:
     whiteList = [os.path.basename(font_dir)] if os.path.isfile(font_dir) else None
 
     if whiteList is None:
-        ff = FontsFactory(logger, font_dir, True, whiteList = whiteList)
+        ff = FontsFactory(logger, font_dir, charset_check = True, whiteList = whiteList)
         allFonts = ff.get_all_fonts(font_dir)
         supportFonts = ff.get_supported_fonts(chars)
         numSupport, numAll = len(supportFonts), len(allFonts)
@@ -91,7 +91,7 @@ def check(logger: Logger, config: str, font_dir: str, show_support: bool, clean:
     else:
         support = []
         notSupport = []
-        ff = FontsFactory(logger, os.path.dirname(font_dir), True, whiteList = whiteList)
+        ff = FontsFactory(logger, os.path.dirname(font_dir), charset_check = True, whiteList = whiteList)
         font_charsets = ff.get_font_charset(font_dir)
 
         for char in chars:
