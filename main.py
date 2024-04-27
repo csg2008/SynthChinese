@@ -169,9 +169,10 @@ def preview(logger: Logger, config: str, output: str, font_dir: str, font_size: 
     os.makedirs(output, exist_ok=True)
 
     tags = []
-    ff = FontsFactory(logger, font_dir)
+    whiteList = cfg['EFFECT']['FONTS']['white_list'] if 'white_list' in cfg['EFFECT']['FONTS'] else None
+    ff = FontsFactory(logger, font_dir, whiteList = whiteList)
     fontUtil = FontUtil(cfg, logger)
-    allFonts = ff.get_all_fonts(font_dir)
+    allFonts = ff.get_load_fonts()
 
     idx = 0
     tags.append(f'<h3>Preview font size {font_size}</h3>')
