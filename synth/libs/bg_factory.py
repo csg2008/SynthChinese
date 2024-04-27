@@ -18,15 +18,16 @@ class bgFactory:
     def get_bgs(self):
         all_imgs = {}
         bgs_dir = self.cfg['DIR']
+        allow_images = ['.jpg', '.jpeg', '.png']
         white_list = self.cfg['white_list'] if 'white_list' in self.cfg else None
 
         if os.path.exists(bgs_dir):
             all_files = os.listdir(bgs_dir)
 
             if white_list and len(white_list) > 0:
-                pic_files = list(filter(lambda x: os.path.splitext(x)[1] in ['.jpg', '.jpeg', '.png'] and x in white_list, all_files))
+                pic_files = list(filter(lambda x: os.path.splitext(x)[1] in allow_images and x in white_list, all_files))
             else:
-                pic_files = list(filter(lambda x: os.path.splitext(x)[1] in ['.jpg', '.jpeg', '.png'], all_files))
+                pic_files = list(filter(lambda x: os.path.splitext(x)[1] in allow_images, all_files))
 
             for fname in pic_files:
                 bg = cv2.imread(os.path.join(bgs_dir, fname))
