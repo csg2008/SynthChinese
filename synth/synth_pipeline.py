@@ -17,7 +17,7 @@ from .utils.merge_util import MergeUtil
 class Pipeline:
     blank_compress_pattern = re.compile(' +')
 
-    def __init__(self, cfg, logger, target_dir: str, category: str, label_index: bool = False, seq: int = 1, display_interval: int = 2000):
+    def __init__(self, cfg, logger, target_dir: str, category: str, seq: int = 1, display_interval: int = 2000):
         os.makedirs(target_dir, exist_ok=True)
 
         self.cv_util = cvUtil(cfg)
@@ -28,7 +28,6 @@ class Pipeline:
         self.cfg = cfg
         self.seq = seq
         self.logger = logger
-        self.label_index = label_index
         self.category = category
         self.target_dir = target_dir
         self.img_dir_short = 'img'
@@ -89,18 +88,15 @@ class Pipeline:
                 f_name = f'{self.category}-{corpus_type}{self.seq:0>8}.jpg'
                 f_meta = f'{font_str}_{cv_str}_{mg_str}'
 
-                if self.label_index:
-                    self.img_save(corpus_generator[0].transfer_label_to_index(text), f_meta, f_name, mg_img, self.label_index)
-                else:
-                    self.img_save(text, f_meta, f_name, mg_img)
+                self.img_save(text, f_meta, f_name, mg_img)
 
                 self.seq += 1
                 imgs.append(f'<img src="{self.img_dir_short}/{f_name}" alt="{html.escape(text)}" title="{html.escape(text)}" />')
 
                 if self.seq % self.display_interval == 0:
                     self.logger.info(f'Num: {self.seq:0>8} image has been generated.')
-            except:
-                self.logger.exception('')
+            except Exception as e:
+                self.logger.error(f'generator error: {text} {f_meta} {e}')
 
     def run(self):
         imgs = []

@@ -155,7 +155,7 @@ def preview(logger: Logger, config: str, output: str, font_dir: str, font_size: 
     print('create font preview done!')
 
 
-def rec(logger: Logger, config: str, output: str, font_dir: str, category: str, label_index: bool, index_start: int):
+def rec(logger: Logger, config: str, output: str, font_dir: str, category: str, index_start: int):
     """
     生成 OCR 识别模型数据
 
@@ -164,7 +164,6 @@ def rec(logger: Logger, config: str, output: str, font_dir: str, category: str, 
         output: 生成的训练数据输出文件夹
         font_dir: 字体文件夹路径
         category: 生成的训练数据类别
-        label_index: 是否以字符索引作为标签
         index_start: 图片文件名序号起始值
     """
 
@@ -178,7 +177,7 @@ def rec(logger: Logger, config: str, output: str, font_dir: str, category: str, 
         cfg['EFFECT']['FONTS']['fonts_dir'] = font_dir
 
     # 合成
-    pipeline = Pipeline(cfg, logger, target_path, category, label_index, seq = index_start, display_interval=2000)
+    pipeline = Pipeline(cfg, logger, target_path, category, seq = index_start, display_interval=2000)
     pipeline.run()
 
 
@@ -211,7 +210,7 @@ if __name__ == '__main__':
     obj_logger = get_logger(args.output)
 
     if 'rec' == args.entry:
-        rec(obj_logger, cfg_file, args.output, args.font_dir, args.category, args.label_index, args.index_start)
+        rec(obj_logger, cfg_file, args.output, args.font_dir, args.category, args.index_start)
     elif 'preview' == args.entry:
         preview(obj_logger, cfg_file, args.output, args.font_dir, args.font_size)
     elif 'check' == args.entry:
