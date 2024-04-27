@@ -64,7 +64,10 @@ class FontsFactory:
                     continue
 
                 charset = self.get_font_charset(entry_path)
-                font_dict[entry] = (entry_path, charset)
+
+                if len(charset) >0:
+                    font_dict[entry] = (entry_path, charset)
+
         return font_dict
 
     def get_font(self, font_path: str, font_size: int) -> ImageFont.FreeTypeFont:
