@@ -144,6 +144,8 @@ class FontsFactory:
                             return {font_name: self.font_prob[font_name]}
                     else:
                         self.logger.error(f'No such font in target dir: {font_name}')
+
+                supported_fonts = None
             else:
                 supported_fonts = deepcopy(self.font_prob)
 

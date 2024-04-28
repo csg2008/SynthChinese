@@ -81,9 +81,19 @@ class Pipeline:
                 font_str, font_img = self.font_util(text, bg_img)
                 cv_str, cv_img = self.cv_util(font_img)
                 mg_str, mg_img = self.merge_util(bg_name, bg_img, cv_img)
+
+                # debug best image size
                 # cv_str = 'cv'
                 # mg_str = 'mg'
-                # mg_img = font_img
+                # target_height = 30
+                # ori_height, ori_width, _ = font_img.shape
+                # ratio = float(ori_height) / float(target_height)
+                # target_width = int(ori_width / ratio)
+                # if target_width != ori_width:
+                #     print('new:', font_img.shape, target_width, target_height)
+                #     mg_img = cv2.resize(font_img, (target_width, target_height))
+                # else:
+                #     mg_img = font_img
 
                 f_name = f'{self.category}-{corpus_type}{self.seq:0>8}.jpg'
                 f_meta = f'{font_str}_{cv_str}_{mg_str}'
@@ -96,7 +106,7 @@ class Pipeline:
                 if self.seq % self.display_interval == 0:
                     self.logger.info(f'Num: {self.seq:0>8} image has been generated.')
             except Exception as e:
-                self.logger.error(f'generator error: {text} {f_meta} {e}')
+                self.logger.error(f'generator error: {text} {e}')
 
     def run(self):
         imgs = []
