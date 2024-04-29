@@ -172,10 +172,6 @@ class FontsFactory:
         else:
             font_name = None
             font_file = None
+            raise UserWarning(f'get text: {text} support font failed')
 
         return font_name, font_file
-
-
-if __name__ == '__main__':
-    ff = FontsFactory('../../data/fonts')
-    print(ff.generate_font('我们'))

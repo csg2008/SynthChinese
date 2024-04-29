@@ -106,7 +106,7 @@ class Pipeline:
                 if self.seq % self.display_interval == 0:
                     self.logger.info(f'Num: {self.seq:0>8} image has been generated.')
             except Exception as e:
-                self.logger.error(f'generator error: {text} {e}')
+                self.logger.info(f'generator error: {text} {e}')
 
     def run(self):
         imgs = []

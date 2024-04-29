@@ -190,16 +190,13 @@ class FontUtil(object):
 
 
     def renderText(self, text: str, font_name:str, font_file: str, size: int, horizontal: bool, text_color: FontColor = (255, 255, 255)) -> Tuple[str, np.ndarray]:
-        try:
-            font = self.fontFac.get_font(font_file, size)
-            font_text = FontText(font, text, font_name, horizontal)
+        font = self.fontFac.get_font(font_file, size)
+        font_text = FontText(font, text, font_name, horizontal)
 
-            text_mask = draw_text_on_bg(font_text, text_color)
+        text_mask = draw_text_on_bg(font_text, text_color)
 
-            np_img = cv2.cvtColor(np.array(text_mask), cv2.COLOR_RGB2BGR)
-            font_string = f'font{size}{font_name}_horizontal{int(horizontal)}'
-        except Exception as e:
-            raise UserWarning(f'renderText error: {e}, font name: {font_name}')
+        np_img = cv2.cvtColor(np.array(text_mask), cv2.COLOR_RGB2BGR)
+        font_string = f'font{size}{font_name}_horizontal{int(horizontal)}'
 
         return font_string, np_img
 
