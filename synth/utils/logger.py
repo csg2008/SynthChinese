@@ -67,7 +67,7 @@ class Logger(logging.Logger):
         # ------file handler------
         os.makedirs(logPath, exist_ok=True)
         logFile = os.path.join(logPath, datetime.datetime.now().strftime('generate_%Y%m%d.log'))
-        file_handler = TimedRotatingFileHandler(logFile, when=when, interval=interval, backupCount=backupCount)
+        file_handler = TimedRotatingFileHandler(logFile, when=when, interval=interval, backupCount=backupCount, encoding='utf-8')
 
         # 删除设置
         file_handler.suffix = '%Y%m%d.log'  # 日志文件后缀
