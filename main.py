@@ -41,11 +41,9 @@ def parse_args():
                         help='生成的训练数据类别')
     parser.add_argument('--label_sep', default='\t', type=str,
                         help='数据标签分隔符')
-    parser.add_argument('--label-index', default=False, type=bool,
-                        help='是否以字符索引作为标签')
-    parser.add_argument('--index-start', default=1, type=int,
+    parser.add_argument('--index_start', default=1, type=int,
                         help='图片文件名序号起始值')
-    parser.add_argument('--show-support', default=False, type=bool,
+    parser.add_argument('--show_support', default=False, type=bool,
                         help='显示支持的字体列表，默认显示不支持的列表')
     parser.add_argument('--clean', default=False, type=bool,
                         help='是否清理不支持的字体文件')
@@ -211,15 +209,11 @@ def rec(logger: Logger, config: str, output: str, font_dir: str, category: str, 
 
     cfg = yaml.load(open(config, 'r', encoding='utf-8'), Loader=yaml.FullLoader)
 
-    # 生成目录
-    fname, _ = os.path.splitext(os.path.basename(config))
-    target_path = os.path.join(output, fname + datetime.datetime.now().strftime('_%Y%m%d%H%M%S'))
-
-    if font_dir is not None:
+    if font_dir is not None and font_dir != '':
         cfg['EFFECT']['FONTS']['fonts_dir'] = font_dir
 
     # 合成
-    pipeline = Pipeline(cfg, logger, target_path, category, seq = index_start, display_interval=2000)
+    pipeline = Pipeline(cfg, logger, output, category, seq = index_start, display_interval=2000)
     pipeline.run()
 
 
@@ -247,7 +241,12 @@ if __name__ == '__main__':
         os._exit(1)
 
     if args.output is None or '' == args.output:
-        args.output = os.path.join(APP_PATH, 'output', args.entry)
+        if args.entry in ['rec', 'det']:
+            today = datetime.datetime.now().strftime('_%Y%m%d%H%M%S')
+            fname = os.path.splitext(os.path.basename(args.config_file))[0]
+            args.output = os.path.join(APP_PATH, 'output', args.entry, fname + today)
+        else:
+            args.output = os.path.join(APP_PATH, 'output', args.entry)
 
     obj_logger = get_logger(args.output)
 
