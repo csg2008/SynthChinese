@@ -32,7 +32,7 @@ class Pipeline:
         self.target_dir = target_dir
         self.img_dir_short = 'img'
         self.img_dir = os.path.join(target_dir, self.img_dir_short)
-        self.label_file = open(self.check_filename(os.path.join(target_dir, category + '.txt')), 'w', encoding='utf-8')
+        self.label_file = open(os.path.join(target_dir, category + '.txt'), 'w+', encoding='utf-8')
         self.label_sep = cfg['TEXT']['SAMPLE']['SEPARATOR']
         self.compress_blank = cfg['TEXT']['SAMPLE']['COMPRESS_BLANK']
 

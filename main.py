@@ -39,8 +39,6 @@ def parse_args():
                         help='预览字体大小')
     parser.add_argument('--category', default='train',  type=str,
                         help='生成的训练数据类别')
-    parser.add_argument('--label_sep', default='\t', type=str,
-                        help='数据标签分隔符')
     parser.add_argument('--index_start', default=1, type=int,
                         help='图片文件名序号起始值')
     parser.add_argument('--show_support', default=False, type=bool,
