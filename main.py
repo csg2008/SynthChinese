@@ -183,7 +183,7 @@ def preview(logger: Logger, config: str, output: str, font_dir: str, font_size: 
             _, img = fontUtil.renderText(imgText, fn, font_file, font_size, True)
             cv2.imwrite(saveFile, img)
 
-            tags.append(f'<img src="{imgFn}" alt="{html.escape(fn)}" title="{html.escape(fn)}" />')
+            tags.append(f'<label><input type="checkbox" name="font" value="{html.escape(fn)}" /><img src="{imgFn}" alt="{html.escape(fn)}" title="{html.escape(fn)}" /></label>')
         except Exception as e:
             logger.info(e)
             traceback.print_exc()

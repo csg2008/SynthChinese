@@ -55,11 +55,15 @@ class FontsFactory:
         font_dict = {}
         all_entries = os.listdir(resource_path)
         allow_exts = ['.ttf', '.otf', '.ttc']
-        #print('font:', all_entries)
+
         for entry in all_entries:
             entry_path = os.path.join(resource_path, entry)
+            skip_file = os.path.join(entry_path, 'skip.txt')
 
             if not entry.startswith('.') and os.path.isdir(entry_path):
+                if os.path.exists(skip_file):
+                    continue
+
                 sub_fonts = self.get_all_fonts(entry_path)
                 if sub_fonts and len(sub_fonts) > 0:
                     font_dict.update(sub_fonts)
@@ -114,7 +118,7 @@ class FontsFactory:
             ttf = self._load_font(font_path)
             chars_set = set()
             for table in ttf['cmap'].tables:
-                for k, v in table.cmap.items():
+                for k, _ in table.cmap.items():
                     char = chr(k)
                     chars_set.add(char)
         except Exception as e:
