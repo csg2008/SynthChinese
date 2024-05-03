@@ -78,7 +78,8 @@ def draw_text_on_bg(
             s = np.random.uniform(*char_spacing)
             char_spacings.append(int(s * cs_height))
         else:
-            char_spacings.append(int(char_spacing * cs_height))
+            # char_spacings.append(int(char_spacing * cs_height))
+            char_spacings.append(int(char_spacing))
 
     if font_text.horizontal:
         width += sum(char_spacings[:-1])
@@ -163,6 +164,7 @@ class FontUtil(object):
         """
 
         self.logger = logger
+        self.char_space = float(cfg['EFFECT']['FONTS']['char_space'])
         self.font_cfg = cfg['EFFECT']['FONTS']
         self.font_style_cfg = self.font_cfg['STYLE']
 
@@ -193,7 +195,7 @@ class FontUtil(object):
         font = self.fontFac.get_font(font_file, size)
         font_text = FontText(font, text, font_name, horizontal)
 
-        text_mask = draw_text_on_bg(font_text, text_color)
+        text_mask = draw_text_on_bg(font_text, text_color, self.char_space)
 
         np_img = cv2.cvtColor(np.array(text_mask), cv2.COLOR_RGB2BGR)
         font_string = f'font{size}{font_name}_horizontal{int(horizontal)}'

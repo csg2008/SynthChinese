@@ -29,6 +29,8 @@ BACKGROUND:
 
 EFFECT:
     FONTS:
+        cache: true                    # 缓存字体
+        char_space: 8                  # 字符间距
         fonts_dir: 'data/fonts'        # 字体目录
         # white_list: ['msyh.ttc']     # 字体白名单，不指定时默认为所有字体
         charset_check: true            # 检查字符是否在字体中
