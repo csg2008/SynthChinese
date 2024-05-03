@@ -74,9 +74,12 @@ class FontsFactory:
                 if self.whiteList and entry not in self.whiteList:
                     continue
 
-                charset = self.get_font_charset(entry_path)
-                if len(charset) > 0:
-                    font_dict[entry] = (entry_path, charset)
+                if self.charset_check:
+                    charset = self.get_font_charset(entry_path)
+                    if len(charset) > 0:
+                        font_dict[entry] = (entry_path, charset)
+                else:
+                    font_dict[entry] = (entry_path, None)
 
         return font_dict
 

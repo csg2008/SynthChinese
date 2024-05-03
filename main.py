@@ -167,7 +167,7 @@ def preview(logger: Logger, config: str, output: str, font_dir: str, font_size: 
     tags = []
     cfg['EFFECT']['FONTS']['cache'] = False
     whiteList = cfg['EFFECT']['FONTS']['white_list'] if 'white_list' in cfg['EFFECT']['FONTS'] else None
-    ff = FontsFactory(logger, font_dir, whiteList = whiteList)
+    ff = FontsFactory(logger, font_dir, charset_check = False, whiteList = whiteList)
     fontUtil = FontUtil(cfg, logger)
     allFonts = ff.get_load_fonts()
 
