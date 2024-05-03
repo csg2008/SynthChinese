@@ -165,6 +165,7 @@ def preview(logger: Logger, config: str, output: str, font_dir: str, font_size: 
     os.makedirs(output, exist_ok=True)
 
     tags = []
+    cfg['EFFECT']['FONTS']['cache'] = False
     whiteList = cfg['EFFECT']['FONTS']['white_list'] if 'white_list' in cfg['EFFECT']['FONTS'] else None
     ff = FontsFactory(logger, font_dir, whiteList = whiteList)
     fontUtil = FontUtil(cfg, logger)
