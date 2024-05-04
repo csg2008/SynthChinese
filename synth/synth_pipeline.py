@@ -6,6 +6,7 @@ import os
 import re
 import cv2
 import html
+import random
 from .corpus import getCorpusGenerate
 from .libs.misc import generateImagePreviews
 from .libs.bg_factory import bgFactory
@@ -35,6 +36,7 @@ class Pipeline:
         self.label_file = open(os.path.join(target_dir, category + '.txt'), 'w+', encoding='utf-8')
         self.label_sep = cfg['TEXT']['SAMPLE']['SEPARATOR']
         self.compress_blank = cfg['TEXT']['SAMPLE']['COMPRESS_BLANK']
+        self.auto_insert_space = cfg['TEXT']['SAMPLE']['AUTO_INSERT_BLANK']
 
         self.display_interval = display_interval
 
@@ -58,25 +60,43 @@ class Pipeline:
         else:
             return file_name
 
-    def compress_blank_char(self, text: str) -> str:
-        return self.blank_compress_pattern.sub('', text)
-
-    def img_save(self, text, f_meta, f_name, img, label_idx = False):
+    def img_save(self, text, f_meta, f_name, img):
         # save img
         cv2.imwrite(os.path.join(self.img_dir, f_name), img)
-        # compress blanks in label
-        if self.compress_blank and not label_idx:
-            text = self.compress_blank_char(text)
-        # strip
-        text = text.strip()
+
         # save label
         label_str = f'{self.img_dir_short}/{f_name}{self.label_sep}{text}{self.label_sep}{f_meta}\n'
         self.label_file.write(label_str)
+
+    def process_text_space(self, text):
+        '''
+        处理文本中的空格，根据配置自动添加空格或去掉空格
+
+        Args:
+            text: 待处理的文本
+
+        Returns:
+            text: 处理空格后的文本
+        '''
+
+        if self.compress_blank:
+            text = self.blank_compress_pattern.sub('', text)
+        elif self.auto_insert_space and ' ' not in text:
+            # 生成一个随机位置的索引
+            random_index = random.randint(0, len(text) - 1)
+
+            # 在随机位置插入空格
+            text = (text[:random_index] + ' ' + text[random_index:]).strip()
+        else:
+            text = text.strip()
+
+        return text
 
     def generator(self, corpus_generator, corpus_type='C', imgs = []):
         for text in corpus_generator[1]:
 
             try:
+                text = self.process_text_space(text)
                 bg_name, bg_img =self.bg_factory.generate_bg()
                 font_str, font_img = self.font_util(text, bg_img)
                 cv_str, cv_img = self.cv_util(font_img)

@@ -11,6 +11,7 @@ TEXT:
         PREVIEW: '0123456789-abcdefg+ABCDEFG={}!@#$%'    # 预览文本
         SEPARATOR: "\t"          # 标签文件中的分隔符
         COMPRESS_BLANK: true     # 压缩标签空格
+        AUTO_INSERT_BLANK: true  # 是否自动插入空格
 
     CORPUS:
         CORPUS_DIR: 'data/corpus'  # 语料目录
@@ -30,7 +31,7 @@ BACKGROUND:
 EFFECT:
     FONTS:
         cache: true                    # 缓存字体
-        char_space: 8                  # 字符间距
+        char_space: 3                  # 字符间距
         fonts_dir: 'data/fonts'        # 字体目录
         # white_list: ['msyh.ttc']     # 字体白名单，不指定时默认为所有字体
         charset_check: true            # 检查字符是否在字体中
